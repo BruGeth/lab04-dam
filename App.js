@@ -10,20 +10,55 @@ export default function App() {
   const [error, setError] = useState('');
 
   const validateForm = () => {
-    if (!nombre || !email || !password || !confirmPassword || !telefono) {
-      setError('Todos los campos son obligatorios');
-    } else if (!email.includes('@')) {
-      setError('El correo debe tener un formato válido');
-    } else if (password.length < 6) {
-      setError('La contraseña debe tener al menos 6 caracteres');
-    } else if (password !== confirmPassword) {
-      setError('Las contraseñas no coinciden');
-    } else if (!/^\d{10}$/.test(telefono)) {
-      setError('El teléfono debe tener 10 dígitos');
-    } else {
-      setError('');
-      alert('Registro exitoso ✅');
+    if (!nombre) {
+      setError('El nombre es obligatorio');
+      return;
     }
+    if (nombre.length < 3) {
+      setError('El nombre debe tener al menos 3 caracteres');
+      return;
+    }
+
+    if (!email) {
+      setError('El correo es obligatorio');
+      return;
+    }
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      setError('El correo debe tener un formato válido');
+      return;
+    }
+
+    if (!password) {
+      setError('La contraseña es obligatoria');
+      return;
+    }
+    if (password.length < 6) {
+      setError('La contraseña debe tener al menos 6 caracteres');
+      return;
+    }
+
+    if (!confirmPassword) {
+      setError('Debes confirmar la contraseña');
+      return;
+    }
+    if (password !== confirmPassword) {
+      setError('Las contraseñas no coinciden');
+      return;
+    }
+
+    if (!telefono) {
+      setError('El teléfono es obligatorio');
+      return;
+    }
+    const phoneRegex = /^\d{10}$/;
+    if (!phoneRegex.test(telefono)) {
+      setError('El teléfono debe tener exactamente 10 dígitos');
+      return;
+    }
+
+    setError('');
+    alert('Registro exitoso ✅');
   };
 
   return (
