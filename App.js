@@ -7,6 +7,14 @@ import {
   StyleSheet,
   Alert,
 } from "react-native";
+import {
+  validateNombre,
+  validateEmail,
+  validatePassword,
+  validateConfirmPassword,
+  validateTelefono,
+  getPasswordStrength,
+} from "./validators";
 
 export default function App() {
   const [nombre, setNombre] = useState("");
@@ -21,69 +29,56 @@ export default function App() {
   const [confirmPasswordError, setConfirmPasswordError] = useState("");
   const [telefonoError, setTelefonoError] = useState("");
 
+  // Validación en tiempo real
+  const handleNombre = (text) => {
+    setNombre(text);
+    setNombreError(validateNombre(text));
+  };
+  const handleEmail = (text) => {
+    setEmail(text);
+    setEmailError(validateEmail(text));
+  };
+  const handlePassword = (text) => {
+    setPassword(text);
+    setPasswordError(validatePassword(text));
+  };
+  const handleConfirmPassword = (text) => {
+    setConfirmPassword(text);
+    setConfirmPasswordError(validateConfirmPassword(password, text));
+  };
+  const handleTelefono = (text) => {
+    setTelefono(text);
+    setTelefonoError(validateTelefono(text));
+  };
+
   const validateForm = () => {
-    let valid = true;
+    const nombreErr = validateNombre(nombre);
+    const emailErr = validateEmail(email);
+    const passwordErr = validatePassword(password);
+    const confirmPasswordErr = validateConfirmPassword(password, confirmPassword);
+    const telefonoErr = validateTelefono(telefono);
 
-    // Validación de nombre
-    if (!nombre) {
-      setNombreError("El nombre es obligatorio");
-      valid = false;
-    } else if (nombre.length < 3) {
-      setNombreError("El nombre debe tener al menos 3 caracteres");
-      valid = false;
-    } else {
-      setNombreError("");
-    }
+    setNombreError(nombreErr);
+    setEmailError(emailErr);
+    setPasswordError(passwordErr);
+    setConfirmPasswordError(confirmPasswordErr);
+    setTelefonoError(telefonoErr);
 
-    // Validación de correo
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!email) {
-      setEmailError("El correo es obligatorio");
-      valid = false;
-    } else if (!emailRegex.test(email)) {
-      setEmailError("El correo debe tener un formato válido");
-      valid = false;
-    } else {
-      setEmailError("");
-    }
-
-    // Validación de contraseña
-    if (!password) {
-      setPasswordError("La contraseña es obligatoria");
-      valid = false;
-    } else if (password.length < 6) {
-      setPasswordError("La contraseña debe tener al menos 6 caracteres");
-      valid = false;
-    } else {
-      setPasswordError("");
-    }
-
-    // Validación de confirmación de contraseña
-    if (!confirmPassword) {
-      setConfirmPasswordError("Debes confirmar la contraseña");
-      valid = false;
-    } else if (password !== confirmPassword) {
-      setConfirmPasswordError("Las contraseñas no coinciden");
-      valid = false;
-    } else {
-      setConfirmPasswordError("");
-    }
-
-    // Validación de teléfono
-    const phoneRegex = /^\d{10}$/;
-    if (!telefono) {
-      setTelefonoError("El teléfono es obligatorio");
-      valid = false;
-    } else if (!phoneRegex.test(telefono)) {
-      setTelefonoError("El teléfono debe tener exactamente 10 dígitos");
-      valid = false;
-    } else {
-      setTelefonoError("");
-    }
-
-    if (valid) {
+    if (
+      !nombreErr &&
+      !emailErr &&
+      !passwordErr &&
+      !confirmPasswordErr &&
+      !telefonoErr
+    ) {
       Alert.alert("Registro exitoso");
     }
+  };
+
+  // Íconos según validez
+  const getIcon = (error, value) => {
+    if (!value) return "";
+    return error ? "❌" : "✅";
   };
 
   return (
@@ -91,58 +86,78 @@ export default function App() {
       <View style={styles.card}>
         <Text style={styles.title}>Registrate</Text>
 
-        <TextInput
-          style={styles.input}
-          placeholder="Nombre"
-          value={nombre}
-          onChangeText={setNombre}
-          placeholderTextColor="#888"
-        />
+        <View style={styles.inputContainer}>
+          <TextInput
+            style={styles.input}
+            placeholder="Nombre"
+            value={nombre}
+            onChangeText={handleNombre}
+            placeholderTextColor="#888"
+          />
+          <Text style={styles.icon}>{getIcon(nombreError, nombre)}</Text>
+        </View>
         {nombreError ? <Text style={styles.error}>{nombreError}</Text> : null}
 
-        <TextInput
-          style={styles.input}
-          placeholder="Correo electrónico"
-          value={email}
-          onChangeText={setEmail}
-          keyboardType="email-address"
-          placeholderTextColor="#888"
-        />
+        <View style={styles.inputContainer}>
+          <TextInput
+            style={styles.input}
+            placeholder="Correo electrónico"
+            value={email}
+            onChangeText={handleEmail}
+            keyboardType="email-address"
+            placeholderTextColor="#888"
+          />
+          <Text style={styles.icon}>{getIcon(emailError, email)}</Text>
+        </View>
         {emailError ? <Text style={styles.error}>{emailError}</Text> : null}
 
-        <TextInput
-          style={styles.input}
-          placeholder="Contraseña"
-          secureTextEntry
-          value={password}
-          onChangeText={setPassword}
-          placeholderTextColor="#888"
-        />
-        {passwordError ? (
-          <Text style={styles.error}>{passwordError}</Text>
-        ) : null}
+        <View style={styles.inputContainer}>
+          <TextInput
+            style={styles.input}
+            placeholder="Contraseña"
+            secureTextEntry
+            value={password}
+            onChangeText={handlePassword}
+            placeholderTextColor="#888"
+          />
+          <Text style={styles.icon}>{getIcon(passwordError, password)}</Text>
+        </View>
+        {passwordError ? <Text style={styles.error}>{passwordError}</Text> : null}
+        <Text style={[styles.strength, 
+          getPasswordStrength(password)==="Fuerte"?styles.strong:
+          getPasswordStrength(password)==="Media"?styles.medium:
+          styles.weak
+        ]}>
+          Fortaleza: {getPasswordStrength(password)}
+        </Text>
 
-        <TextInput
-          style={styles.input}
-          placeholder="Confirmar contraseña"
-          secureTextEntry
-          value={confirmPassword}
-          onChangeText={setConfirmPassword}
-          placeholderTextColor="#888"
-        />
+        <View style={styles.inputContainer}>
+          <TextInput
+            style={styles.input}
+            placeholder="Confirmar contraseña"
+            secureTextEntry
+            value={confirmPassword}
+            onChangeText={handleConfirmPassword}
+            placeholderTextColor="#888"
+          />
+          <Text style={styles.icon}>{getIcon(confirmPasswordError, confirmPassword)}</Text>
+        </View>
         {confirmPasswordError ? (
           <Text style={styles.error}>{confirmPasswordError}</Text>
         ) : null}
 
-        <TextInput
-          style={styles.input}
-          placeholder="Teléfono"
-          value={telefono}
-          onChangeText={setTelefono}
-          keyboardType="numeric"
-          maxLength={10}
-          placeholderTextColor="#888"
-        />
+        <View style={styles.inputContainer}>
+          <TextInput
+            style={styles.input}
+            placeholder="Teléfono"
+            value={telefono}
+            onChangeText={handleTelefono}
+            keyboardType="numeric"
+            maxLength={10}
+            placeholderTextColor="#888"
+          />
+          <Text style={styles.icon}>{getIcon(telefonoError, telefono)}</Text>
+        </View>
         {telefonoError ? (
           <Text style={styles.error}>{telefonoError}</Text>
         ) : null}
@@ -158,7 +173,7 @@ export default function App() {
 const styles = StyleSheet.create({
   screen: {
     flex: 1,
-    backgroundColor: "#e9ecef",
+    backgroundColor: "#f0f4f8",
     justifyContent: "center",
     alignItems: "center",
   },
@@ -166,36 +181,45 @@ const styles = StyleSheet.create({
     width: "100%",
     maxWidth: 400,
     backgroundColor: "#fff",
-    borderRadius: 16,
-    padding: 24,
+    borderRadius: 18,
+    padding: 28,
     shadowColor: "#000",
-    shadowOpacity: 0.15,
-    shadowRadius: 8,
-    elevation: 8,
+    shadowOpacity: 0.12,
+    shadowRadius: 10,
+    elevation: 10,
   },
   title: {
-    fontSize: 26,
+    fontSize: 28,
     fontWeight: "bold",
-    marginBottom: 24,
+    marginBottom: 28,
     textAlign: "center",
-    color: "#343a40",
+    color: "#22223b",
+  },
+  inputContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 2,
   },
   input: {
+    flex: 1,
     borderWidth: 1,
-    borderColor: "#ced4da",
-    backgroundColor: "#f8f9fa",
+    borderColor: "#bfc0c0",
+    backgroundColor: "#f7f7fa",
     padding: 12,
-    marginBottom: 2,
-    borderRadius: 8,
+    borderRadius: 10,
     fontSize: 16,
-    color: "#212529",
+    color: "#22223b",
+  },
+  icon: {
+    fontSize: 22,
+    marginLeft: 8,
   },
   button: {
-    backgroundColor: "#38b6ff",
+    backgroundColor: "#4ea8de",
     padding: 16,
-    borderRadius: 8,
-    marginTop: 18,
-    shadowColor: "#38b6ff",
+    borderRadius: 10,
+    marginTop: 22,
+    shadowColor: "#4ea8de",
     shadowOpacity: 0.2,
     shadowRadius: 4,
     elevation: 2,
@@ -212,5 +236,20 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     marginLeft: 2,
     fontSize: 14,
+  },
+  strength: {
+    fontWeight: "bold",
+    marginBottom: 10,
+    marginLeft: 2,
+    fontSize: 15,
+  },
+  weak: {
+    color: "#e63946",
+  },
+  medium: {
+    color: "#f9a826",
+  },
+  strong: {
+    color: "#43aa8b",
   },
 });
