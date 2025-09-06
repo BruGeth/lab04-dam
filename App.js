@@ -2,17 +2,24 @@ import { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
 
 export default function App() {
+  const [nombre, setNombre] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [telefono, setTelefono] = useState('');
   const [error, setError] = useState('');
 
   const validateForm = () => {
-    if (!email || !password) {
+    if (!nombre || !email || !password || !confirmPassword || !telefono) {
       setError('Todos los campos son obligatorios');
     } else if (!email.includes('@')) {
       setError('El correo debe tener un formato válido');
     } else if (password.length < 6) {
       setError('La contraseña debe tener al menos 6 caracteres');
+    } else if (password !== confirmPassword) {
+      setError('Las contraseñas no coinciden');
+    } else if (!/^\d{10}$/.test(telefono)) {
+      setError('El teléfono debe tener 10 dígitos');
     } else {
       setError('');
       alert('Registro exitoso ✅');
@@ -21,13 +28,21 @@ export default function App() {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Registro</Text>
+      <Text style={styles.title}>Registrate</Text>
+
+      <TextInput
+        style={styles.input}
+        placeholder="Nombre"
+        value={nombre}
+        onChangeText={setNombre}
+      />
 
       <TextInput
         style={styles.input}
         placeholder="Correo electrónico"
         value={email}
         onChangeText={setEmail}
+        keyboardType="email-address"
       />
 
       <TextInput
@@ -36,6 +51,23 @@ export default function App() {
         secureTextEntry
         value={password}
         onChangeText={setPassword}
+      />
+
+      <TextInput
+        style={styles.input}
+        placeholder="Confirmar contraseña"
+        secureTextEntry
+        value={confirmPassword}
+        onChangeText={setConfirmPassword}
+      />
+
+      <TextInput
+        style={styles.input}
+        placeholder="Teléfono"
+        value={telefono}
+        onChangeText={setTelefono}
+        keyboardType="numeric"
+        maxLength={10}
       />
 
       {error ? <Text style={styles.error}>{error}</Text> : null}
